@@ -21,7 +21,7 @@ struct exfivepacket
 
 
 int main(int argc, char *argv[]) {
-    char filter[] = "port 9999";
+    char filter[] = "tcp port 9999";
     struct bpf_program fp;		/* The compiled filter expression */
     bpf_u_int32 mask;		/* The netmask of our sniffing device */
     bpf_u_int32 net;		/* The IP of our sniffing device */
@@ -103,9 +103,9 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header,const u_char *pac
             inet_ntop(AF_INET,&(ip_header->saddr),final_src,INET_ADDRSTRLEN);
             inet_ntop(AF_INET,&(ip_header->daddr),final_dest,INET_ADDRSTRLEN);
             fprintf(fp, "source_ip: %s\n", final_src);
-            fprintf(fp, "dest_ip: %s, source_port: %d, dest_port: %d, timestamp: %d total_length: %d\n", final_dest, htons(tcp_header->th_sport),
-                    htons(tcp_header->th_dport), htons(app_packet->unixtime), ntohs(app_packet->length));
-            fprintf(fp, "cache_flag: %d, steps_flag: %d, type_flag: %d, status_code: %d, cache_control: %d, data:  \n",
+            fprintf(fp, "dest_ip: %s, source_port: %hu, dest_port: %hu, timestamp: %ul total_length: %hu\n", final_dest, htons(tcp_header->th_sport),
+                    htons(tcp_header->th_dport), ntohl(app_packet->unixtime), ntohs(app_packet->length));
+            fprintf(fp, "cache_flag: %hu, steps_flag: %hu, type_flag: %hu, status_code: %hu, cache_control: %hu, data:  \n",
                     htons(app_packet->c_flag), htons(app_packet->s_flag), htons(app_packet->t_flag), htons(app_packet->status),
                     htons(app_packet->cache));
 // Print data to file
