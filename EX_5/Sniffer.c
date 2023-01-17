@@ -105,10 +105,18 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header,const u_char *pac
             fprintf(fp, "source_ip: %s\n", final_src);
             fprintf(fp, "dest_ip: %s, source_port: %d, dest_port: %d, timestamp: %d total_length: %d\n", final_dest, htons(tcp_header->th_sport),
                     htons(tcp_header->th_dport), htons(app_packet->unixtime), ntohs(app_packet->length));
-            fprintf(fp, "cache_flag: %d, steps_flag: %d, type_flag: %d, status_code: %d, cache_control: %d, data: %sl \n",
+            fprintf(fp, "cache_flag: %d, steps_flag: %d, type_flag: %d, status_code: %d, cache_control: %d, data:  \n",
                     htons(app_packet->c_flag), htons(app_packet->s_flag), htons(app_packet->t_flag), htons(app_packet->status),
-                    htons(app_packet->cache), packet);
-// other header fields
+                    htons(app_packet->cache));
+// Print data to file
+        for (int i=0; i< sizeof(packet); i++)
+    {
+        fprintf(fp, " %02X", (unsigned char) packet[i]);
+        if (i%16 == 0)
+        {
+            fprintf(fp,"\n");
+        }
+    }
 
     fclose(fp);
 
