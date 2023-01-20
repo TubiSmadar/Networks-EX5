@@ -3,19 +3,11 @@
 //
 
 #include <arpa/inet.h>
-#include <net/ethernet.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <stdio.h>
 #include <netinet/ip.h>
-#include <unistd.h>
-#include <netinet/tcp.h>
 #include <netinet/udp.h>
-#include <stdlib.h>
-#include <pcap.h>
-#include <errno.h>
-#include <time.h>
-#include <pcap/pcap.h>
 /* IP Header */
 struct ipheader {
     unsigned char      iph_ihl:4, //IP header length
@@ -47,32 +39,26 @@ struct udpheader {
 
 unsigned short calculate_checksum(unsigned short *paddress, int len);
 void send_raw_ip_packet(struct ipheader* ip);
-void sendICMP();
+void sendSpoofed();
 int main(int argc, char* argv[]){
-sendICMP();
+sendSpoofed();
 return 0;
 }
-void sendTCP()
-{
-    char buffer[1500];
-    memset(buffer,0,1500);
-    struct tcphdr *tcp = (struct tcphdr *) (buffer + sizeof(struct ipheader));
 
-}
-void sendICMP()
+void sendSpoofed()
 {
     char buffer[1500];
 
     memset(buffer, 0, 1500);
 
     /*********************************************************
-       Step 1: Fill in the ICMP header.
+       Step 1: Fill in the ICMP header.                       add your own filler to your own protocol will be changed here
      ********************************************************/
     struct icmpheader *icmp = (struct icmpheader *)
             (buffer + sizeof(struct ipheader));
     icmp->icmp_type = 8; //ICMP Type: 8 is request, 0 is reply.
 
-    // Calculate the checksum for integrity
+    // Calculate the checksum
     icmp->icmp_chksum = 0;
     icmp->icmp_chksum = calculate_checksum((unsigned short *)icmp,
                                            sizeof(struct icmpheader));
@@ -84,11 +70,11 @@ void sendICMP()
     ip->iph_ver = 4;
     ip->iph_ihl = 5;
     ip->iph_ttl = 20;
-    ip->iph_sourceip.s_addr = inet_addr("1.2.3.4");
-    ip->iph_destip.s_addr = inet_addr("10.0.2.5");
+    ip->iph_sourceip.s_addr = inet_addr("127.0.0.1");
+    ip->iph_destip.s_addr = inet_addr("127.0.0.1");
     ip->iph_protocol = IPPROTO_ICMP;
     ip->iph_len = htons(sizeof(struct ipheader) +
-                        sizeof(struct icmpheader));
+                        sizeof(struct icmpheader)); // change here also*
 
     /*********************************************************
        Step 3: Finally, send the spoofed packet
