@@ -82,7 +82,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header,const u_char *pac
     printf("source_ip: %s",inet_ntoa(ip_header->iph_sourceip));
     printf(", dest_ip: %s\n",inet_ntoa(ip_header->iph_destip));
 
-    if( icmp_header->icmp_type == 0) //8 == request
+    if( icmp_header->icmp_type == 8) //8 == request
     {
         char spoof[1500];
         memset((char *)spoof, 0, 1500);
@@ -109,6 +109,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header,const u_char *pac
         printf(", dest_ip: %s\n",inet_ntoa(ipheader->iph_destip));
 
         send_raw_ip_packet(ipheader);
+
     }
 }
 unsigned short calculate_checksum(unsigned short *paddress, int len) {
