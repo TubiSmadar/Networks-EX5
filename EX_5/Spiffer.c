@@ -49,13 +49,13 @@ int main(){
 
 
     // Step 1: Open live pcap session on NIC with name eth3
-    handle = pcap_open_live("lo", BUFSIZ, 1, 1000, errbuf);
+    handle = pcap_open_live("br-5a8167b262bd", BUFSIZ, 1, 1000, errbuf);
     if(handle == NULL){
         perror("handle problem");
         exit(1);
     }
 
-    // Step 2: Compile filter_exp into BPF psuedo-code
+    // Step 2: Compile filter_exp into BPF
     int pcap = pcap_compile(handle, &fp, filter_exp, 0, net);
     if(pcap < 0){
         perror("pcap compiling problem");
@@ -85,8 +85,8 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header,const u_char *pac
     if( icmp_header->icmp_type == 0) //8 == request
     {
         char spoof[1500];
-        memset(spoof , 0, 1500);
-
+        memset((char *)spoof, 0, 1500);
+        memcpy((char *)spoof, ip_header, ntohs(ip_header->iph_len));
         struct ipheader *ipheader = (struct ipheader *)(spoof+sizeof(struct ethhdr));
         struct icmpheader *icmpheader = (struct icmpheader *) (spoof + sizeof(struct ethhdr) + sizeof(struct ipheader));
 
@@ -104,7 +104,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header,const u_char *pac
         icmpheader->icmp_chksum =0;
         icmpheader->icmp_chksum= calculate_checksum((unsigned short *)icmpheader, sizeof(struct icmpheader));
 
-        printf("Spoofed packet details\n");
+        printf("Spoofed packet details*********\n");
         printf("source_ip: %s",inet_ntoa(ipheader->iph_sourceip));
         printf(", dest_ip: %s\n",inet_ntoa(ipheader->iph_destip));
 
