@@ -70,8 +70,8 @@ void sendSpoofed()
     ip->iph_ver = 4;
     ip->iph_ihl = 5;
     ip->iph_ttl = 20;
-    ip->iph_sourceip.s_addr = inet_addr("127.0.0.1");
-    ip->iph_destip.s_addr = inet_addr("127.0.0.1");
+    ip->iph_sourceip.s_addr = inet_addr("10.9.0.5");
+    ip->iph_destip.s_addr = inet_addr("10.9.0.6");
     ip->iph_protocol = IPPROTO_ICMP;
     ip->iph_len = htons(sizeof(struct ipheader) +
                         sizeof(struct icmpheader)); // change here also*
