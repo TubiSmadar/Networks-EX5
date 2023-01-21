@@ -44,7 +44,7 @@ int main(){
     pcap_t *handle;
     char errbuf[PCAP_ERRBUF_SIZE];
     struct bpf_program fp;
-    char filter_exp[] = "icmp";
+    char filter_exp[] = "icmp and icmp[0] = 8";
     bpf_u_int32 net;
 
 
@@ -76,6 +76,9 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header,const u_char *pac
 
     struct ipheader *ip_header = (struct ipheader *)(packet + sizeof(struct ethhdr));
     struct icmpheader *icmp_header = (struct icmpheader *)(packet + sizeof(struct ethhdr) + sizeof(struct ipheader));
+    char src_ip[INET_ADDRSTRLEN], dest_ip[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET,&(ip_header->iph_sourceip),src_ip,INET_ADDRSTRLEN);
+    inet_ntop(AF_INET,&(ip_header->iph_destip),dest_ip,INET_ADDRSTRLEN);
 
     // Sniffed packet details
     printf("Sniffed packet details\n");
@@ -86,7 +89,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header,const u_char *pac
     {
         char spoof[1500];
         memset((char *)spoof, 0, 1500);
-        memcpy((char *)spoof, ip_header, ntohs(ip_header->iph_len));
+        //memcpy((char *)spoof, ip_header, ntohs(ip_header->iph_len)); //uncomment this line to make the
         struct ipheader *ipheader = (struct ipheader *)(spoof+sizeof(struct ethhdr));
         struct icmpheader *icmpheader = (struct icmpheader *) (spoof + sizeof(struct ethhdr) + sizeof(struct ipheader));
 
@@ -107,7 +110,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header,const u_char *pac
         printf("Spoofed packet details*********\n");
         printf("source_ip: %s",inet_ntoa(ipheader->iph_sourceip));
         printf(", dest_ip: %s\n",inet_ntoa(ipheader->iph_destip));
-
+       // printf("whatappp\n");
         send_raw_ip_packet(ipheader);
 
     }
@@ -141,15 +144,17 @@ void send_raw_ip_packet(struct ipheader* ip){
     int sock = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
 
     // Step 2: Set socket option.
-    setsockopt(sock, IPPROTO_IP, IP_HDRINCL,
+    int set = setsockopt(sock, IPPROTO_IP, IP_HDRINCL,
                &enable, sizeof(enable));
-
     // Step 3: Provide needed information about destination.
     dest_info.sin_family = AF_INET;
     dest_info.sin_addr = ip->iph_destip;
-
     // Step 4: Send the packet out.
-    sendto(sock, ip, ntohs(ip->iph_len), 0,
+    int sent = sendto(sock, ip, ntohs(ip->iph_len), 0,
            (struct sockaddr *)&dest_info, sizeof(dest_info));
+    if (sent == -1) {
+        printf("Send error\n");
+    }
+
     close(sock);
 }
